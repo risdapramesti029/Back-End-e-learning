@@ -1,15 +1,17 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
+  Put,
   Res,
   UnauthorizedException,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import { LoginDTO, registerUserDTO } from 'src/dto/auth.dto';
+import { LoginDTO, registerUserDTO, updateUserDTO } from 'src/dto/auth.dto';
 import { ResponseHelper } from 'src/helpers/response.helpers';
 import { AuthService } from 'src/services/auth.service';
 
@@ -20,18 +22,19 @@ export class AuthController {
     private readonly responseHelper: ResponseHelper,
   ) {}
 
-  @Get('/user')
+  @Get('/list')
   async getAllUser(@Res() res) {
     try {
-      const user = await this.authService.getAllUser();
+      const [user] = await this.authService.getAllUser();
       return this.responseHelper.responseSuccessData(
         res,
         201,
-        'Data semua user berhasil diambil',
+        'Berhasil Mendapatkan data user',
         user,
       );
     } catch (error) {
-      return this.responseHelper.responseServerError(error);
+      console.log(error);
+      return this.responseHelper.responseServerError(res);
     }
   }
 
@@ -39,14 +42,26 @@ export class AuthController {
   async getUserById(@Res() res, @Param('id') id) {
     try {
       const user = await this.authService.getUserById(id);
+      if (!user) {
+        return this.responseHelper.responseClientError(
+          res,
+          404,
+          `User dengan id ${id} tidak ditemukan`,
+        );
+      }
+      const pembayaran = await this.authService.getPembayaranById(user);
+      const mapel = await this.authService.getAllMapelByIdUser(user);
+      const materi = await this.authService.getMateri(mapel);
+      const soal = await this.authService.getSoal(materi);
       return this.responseHelper.responseSuccessData(
         res,
         201,
-        'Data user berhasil diambil',
-        user,
+        `Berhasil Mendapatkan user dengan id ${id}`,
+        { user, pembayaran, mapel, materi, soal },
       );
     } catch (error) {
-      return this.responseHelper.responseServerError(error);
+      console.log(error);
+      return this.responseHelper.responseServerError(res);
     }
   }
 
@@ -99,6 +114,28 @@ export class AuthController {
     }
   }
 
+  @Put('/:id')
+  async updateUser(@Res() res, @Param('id') id, @Body() body: updateUserDTO) {
+    try {
+      const user = await this.authService.getUserById(id);
+      if (!user) {
+        return this.responseHelper.responseClientError(
+          res,
+          404,
+          `User dengan ${id} tidak ditemukan`,
+        );
+      }
+      await this.authService.updateUser(id, body);
+      return this.responseHelper.responseSuccess(
+        res,
+        200,
+        `Berhasil Update user dengan id ${id}`,
+      );
+    } catch (error) {
+      return this.responseHelper.responseServerError(error);
+    }
+  }
+
   @Post('/login')
   async loginUser(@Body() loginDTO: LoginDTO, @Res() res) {
     const { user, accessToken } = await this.authService.loginUser(loginDTO);
@@ -111,6 +148,29 @@ export class AuthController {
       );
     } else {
       throw new UnauthorizedException('Invalid credentials');
+    }
+  }
+
+  @Delete('/:id')
+  async deleteUser(@Res() res, @Param('id') id) {
+    try {
+      const user = await this.authService.getUserById(id);
+      if (!user) {
+        return this.responseHelper.responseClientError(
+          res,
+          404,
+          `User dengan ${id} tidak ditemukan`,
+        );
+      }
+      await this.authService.deleteUser(id);
+      return this.responseHelper.responseSuccess(
+        res,
+        200,
+        `Berhasil Delete user dengan id ${id}`,
+      );
+    } catch (error) {
+      console.log(error);
+      return this.responseHelper.responseServerError(error);
     }
   }
 }

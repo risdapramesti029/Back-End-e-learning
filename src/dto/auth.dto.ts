@@ -1,20 +1,33 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class userDTO {
   @IsString()
   nama_lengkap: string;
 
+  @IsNumber()
+  no_handphone: number;
+
   @IsString()
   tingkat_pendidikan: string;
+
+  @IsOptional()
+  mapel: string;
+
+  @IsString()
+  gender: string;
 
   @IsString()
   email: string;
 
-  @IsString()
+  @IsOptional()
   bukti_pembayaran: string;
 
   @IsString()
   username: string;
+
+  @IsString()
+  @IsNotEmpty()
+  role: string;
 
   @IsString()
   password: string;
@@ -36,7 +49,7 @@ export class LoginDTO extends userDTO {
   password: string;
 }
 
-export class updateHolidayDTO extends userDTO {
+export class updateUserDTO extends userDTO {
   @IsNotEmpty()
   @IsString()
   updated_by: string;

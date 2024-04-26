@@ -1,4 +1,4 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import { Column, DataType, HasMany, Model, Table } from 'sequelize-typescript';
 
 @Table({ tableName: 'e_user' })
 export class AuthModel extends Model {
@@ -15,26 +15,31 @@ export class AuthModel extends Model {
   nama_lengkap: string;
 
   @Column({
-    type: DataType.CHAR(255),
+    type: DataType.BIGINT,
+  })
+  no_handphone: number;
+
+  @Column({
+    type: DataType.CHAR(64),
     unique: true,
   })
   email: string;
 
   @Column({
-    type: DataType.CHAR(255),
+    type: DataType.CHAR(3),
   })
   tingkat_pendidikan: string;
 
   @Column({
-    type: DataType.CHAR(255),
-    defaultValue: 'siswa',
+    type: DataType.CHAR(10),
   })
-  role: string;
+  gender: string;
 
   @Column({
+    allowNull: true,
     type: DataType.CHAR(255),
   })
-  bukti_pembayaran: string;
+  role: string;
 
   @Column({
     type: DataType.CHAR(255),
